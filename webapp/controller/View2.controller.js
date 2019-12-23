@@ -221,7 +221,7 @@ sap.ui.define(
           "text",
           "skill",
           "Skill",
-          "200px",
+          "300px",
           oTable
         );
         oColumn = this._createColumn(
@@ -229,13 +229,15 @@ sap.ui.define(
           "text",
           "name",
           "Resource",
-          "200px",
+          "300px",
           oTable
         );
 
         let diffDate = this._getDiffYear(oData, "sdate", "edate");
-        this._buildRows(oaData, diffDate, oControl, oTable, groubedBySkill);
+        this._buildRows(oaData, diffDate, oControl, oTable);
+
         oTable.setFixedColumnCount(3);
+
         let oModel = new sap.ui.model.json.JSONModel();
         oModel.setData({
           modelData: oaData
@@ -251,123 +253,65 @@ sap.ui.define(
         // this.getView().setModel(oModel1);
       },
 
-      onUpdatePress: function(oEvent) {
-        var that = this;
-        console.log(
-          this.byId("table1")
-            .getModel()
-            .getData().modelData
-        );
-        let _a = this.byId("table1")
-            .getModel()
-            .getData().modelData,
-          _e = [];
-        $.each(_a, function(_i, _x) {
-          let _f = {}, _g = {};
-          _f.sno = _x.sno;
-          _f.skill = _x.skill;
-          _f.name = _x.name;
-          let _b = Object.entries(_x).splice(3, Object.entries(_x).length),
-            _sdate = "",
-            _edate = "",
-            _share = "";
-          $.each(_b, function(_j, _y) {
-            if (_sdate === "") {
-              _sdate = _y[0];
-            }
-            if (_b[_j + 1] !== undefined) {
-              if (_y[1] === _b[_j + 1][1]) {
-                _edate = _b[_j + 1][0];
-                _share = _y[1];
-              } else {
-                _edate = _y[0];
-                _share = _y[1];
-                _f.sdate = that._formatDate(_sdate);
-                _f.edate = that._formatDate(_edate);
-                _f.share = _share;
-                _e.push(_f);
-                _g = _f;
-                _f = {};
-                _f.sno = _g.sno;
-                _f.skill = _g.skill;
-                _f.name = _g.name;
-                _sdate = "";
-              }
-            } else {
-              _share = _y[1];
-              _edate = _y[0];
-              _f.sdate = that._formatDate(_sdate);
-              _f.edate = that._formatDate(_edate);
-              _f.share = _share;
-              _e.push(_f);
-              _g = _f;
-              _f = {};
-              _f.sno = _g.sno;
-              _f.skill = _g.skill;
-              _f.name = _g.name;
-              _sdate = "";
-            }
-          });          
-        });
-        console.log(JSON.stringify(_e));
-      },
-
-      _formatDate: function(a){
-        let _a =  a.split("_")[0],
-            _b =  a.split("_")[1];
-        let _c = parseInt(_a.replace("M", "")) + 1;
-              _c = _c < 10 ? "0" + _c : _c;
-        return _c + "/01/" + _b;
-      },
-
-      _buildRows: function(a, b, c, f, d) {
-        let that = this;
-        $.each(a, function(_i, _v) {
-          let _a1 = d[_v.skill].find(o => o.sno === _v.sno.toString()),
-            _b1 =
-              new Date(_a1.edate).getMonth() - new Date(_a1.sdate).getMonth(),
-            _d1 = new Date(_a1.sdate);
-
-          _b1 = _b1 < 0 ? 12 + _b1 : _b1;
-          for (let _c1 = 0; _c1 <= _b1; _c1++) {
-            _v["M" + parseInt(_d1.getMonth()) + "_" + _d1.getFullYear()] =
-              _a1.share;
-            _d1 = new Date(_d1.setMonth(_d1.getMonth() + 1));
-          }
-        });
-
+      _buildRows: function(a, b, c, f) {
         let _a = this.getLowestDateYear;
         for (let i = 0; i <= b; i++) {
-          let _b = new Date("01/01/" + _a);
+          let _b = new Date("01/01/" + b);
           for (let y = 0; y < this.aMonthL.length; y++) {
             let _c = _b,
               _e = "M" + parseInt(_c.getMonth()) + "_" + _c.getFullYear();
-            c = new sap.ui.commons.TextView().bindProperty("text", _e);
-            c = new sap.m.Input({
-              type: sap.m.InputType.Number,
-              maxLength: 2
-            }).bindProperty("value", _e);
-            c = new sap.ui.table.Column({
-              multiLabels: [
-                new sap.m.Label({
-                  text: _a
-                }),
-                new sap.m.Label({
-                  text: that.aMonthS[y]
-                })
-              ],
-              template: c,
-              headerSpan: [12, 1],
-              autoResizable: false,
-              width: "60px"
-            });
-            f.addColumn(c, {
-              autoResizable: false
-            });
-            _c = new Date(_b.setMonth(_b.getMonth() + 1));
+            this._createColumnInput(
+              c,
+              "text",
+              "sno",
+              this.aMonthS[y],
+              "50px",
+              f,
+              _a,
+              _e
+            );
           }
           _a++;
         }
+      },
+      /**
+       *
+       * @param {*} a Column
+       * @param {*} b BindingProperty Type
+       * @param {*} c BindingProperty Key
+       * @param {*} d Column Label Value
+       * @param {*} e Column Width
+       * @param {*} f Table
+       * @param {*} g Primary Label
+       * @param {*} h Primary Key
+       */
+      _createColumnInput: function(a, b, c, d, e, f, g, h) {
+        a = new sap.ui.commons.TextView().bindProperty("text", h);
+        a = new sap.m.Input({
+          type: sap.m.InputType.Number,
+          maxLength: 2
+        }).bindProperty("value", h);
+
+        a = new sap.ui.commons.TextView().bindProperty(b, c);
+        var _a = new sap.ui.table.Column({
+          multiLabels: [
+            [
+              new sap.m.Label({
+                text: g
+              }),
+              new sap.m.Label({
+                text: d
+              })
+            ]
+          ],
+          template: a,
+          headerSpan: [12, 1],
+          autoResizable: false,
+          width: e
+        });
+        f.addColumn(_a, {
+          autoResizable: false
+        });
       },
 
       _getDiffYear: function(a, b, c) {
